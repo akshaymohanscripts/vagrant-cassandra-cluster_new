@@ -1,14 +1,14 @@
-##Introduction
+# Introduction
 
 Easily provision a 3 node DSC Cassandra cluster on Centos using Ansible and Vagrant. This is basically a version of https://github.com/joeljacobson/vagrant-ansible-cassandra but uses Centos instead of Ubuntu.
 
-##Prerequisites
+# Prerequisites
 
 * [Virtualbox](https://www.virtualbox.org/)
 * [Vagrant](https://www.vagrantup.com/downloads)
 * [Ansible](http://docs.ansible.com/intro_installation.html)
 
-##Provisioning
+# Provisioning
 
 Clone the project: ```git clone https://github.com/matthewlboyd/vagrant-centos-ansible-cassandra.git```
 
