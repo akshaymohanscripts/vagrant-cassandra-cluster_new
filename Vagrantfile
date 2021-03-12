@@ -24,8 +24,11 @@ Vagrant.configure("2") do |config|
     ansible.playbook = "site.yml"
   end
 
- config.vm.provider "virtualbox" do |vb|
-   vb.customize ["modifyvm", :id, "--memory", "3072"]
+   config.vm.provider "virtualbox" do |vb|
+    vb.customize ["modifyvm", :id, "--memory", "3072"]
  end
+ 
+   config.vm.provision :shell, :inline => "python health_script.py", :privileged => false
+  end
 
 end

@@ -1,6 +1,6 @@
 #Main Cassandra configuration variables
 config:
    cluster_name: 'DSC Cluster'
-   seeds: '192.168.56.10'
+   seeds: '192.168.56.10,192.168.56.20'
    listen_address: 192.168.56.20
    rpc_address: 192.168.56.20

@@ -1,0 +1,89 @@
+- name: update Yum
+  shell: yum update -y
+
+- name: installing dependencies
+  yum: pkg={{ item }} state=installed 
+  with_items:
+  - vim
+  - jna
+  - sysstat
+  - libselinux-python
+  - lsof
+ 
+- name: installing Datastax cassandra
+  yum: pkg=dsc21 state=installed
+
+- name: configuring cassandra
+  template: src=templates/cassandra.yaml dest=/etc/cassandra/conf/cassandra.yaml
+  
+- name: java installation
+  shell: yum localinstall -y jdk-8u131-linux-x64.rpm
+
+- name: Remove OpenJDK
+  action: yum pkg=java-1.8.0-openjdk state=removed
+  
+- name: adding oracle java repository
+  shell: "wget --no-cookies --no-check-certificate --header 'Cookie: gpw_e24=http%3A%2F%2Fwww.oracle.com%2F; oraclelicense=accept-securebackup-cookie' \
+ 'http://download.oracle.com/otn-pub/java/jdk/8u131-b11/d54c1d3a095b4ff2b6607d096fa80163/jdk-8u131-linux-x64.rpm'"
+
+- name: Adding datastax repo
+  template: src=templates/datastax.repo dest=/etc/yum.repos.d/datastax.repo owner=root group=root
+  
+- name: starting cassandra service
+  service: name=cassandra enabled=yes state=started
+  enabled: yes
+  
+- name: allow traffic on port 7000
+  ansible.posix.firewalld:
+    port: 7000/tcp
+    permanent: yes
+    state: enabled
+    
+- name: allow traffic on port 9042
+  ansible.posix.firewalld:
+    port: 9042/tcp
+    permanent: yes
+    state: enabled
+    
+- name: Enable SELinux
+  ansible.posix.selinux:
+    policy: targeted
+    state: enforcing
+    
+- name: Check for Python
+      raw: test -e /usr/bin/python
+      changed_when: false
+      failed_when: false
+      register: check_python
+
+ - name: Install Python
+      raw: yum -y install python
+      when: check_python.rc != 0
+      
+- name: Get installed pip version
+  command: "pip --version"
+  register: pip_version_output
+  ignore_errors: yes
+  changed_when: false
+
+- name: Download get-pip.py
+  get_url:
+      url: 'https://bootstrap.pypa.io/get-pip.py'
+      dest: /tmp/get-pip.py
+  when: (pip_version_output is failed) or not pip_version_output.stdout is search(9.0.*)
+  ignore_errors: yes
+
+- name: Install pip
+  command: "{{ ansible_python_interpreter if ansible_python_interpreter is defined else 'python' }} get-pip.py pip==9.0.*"
+  ignore_errors: yes
+  args:
+    chdir: /tmpz
+    
+- name: Install multi python packages with version specifiers
+  pip:
+    name:
+      - glob3
+      - libpython2.7-stdlib
+      - json
+      - os
+      - subprocess.run
